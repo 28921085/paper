@@ -55,31 +55,55 @@ def process_image(image_path, save_folder):
     for face in faces:
         landmarks = predictor(gray, face)
 
-        # 獲取眼睛、鼻子、嘴巴的特徵點範圍
+        # 定義眼睛、鼻子和嘴巴的特徵點範圍
+        entire_face = list(range(0, 68))  # 整個臉的特徵點
         left_eye_points = list(range(36, 42))  # 左眼
         right_eye_points = list(range(42, 48))  # 右眼
         nose_points = list(range(27, 36))  # 鼻子
         mouth_points = list(range(48, 68))  # 嘴巴
 
-        # 函數來挖空每個區域
-        def fill_white(points):
+        # 繪製整個臉部邊界
+        entire_face_pts = np.array([[landmarks.part(p).x, landmarks.part(p).y] for p in entire_face], np.int32)
+        entire_face_hull = cv2.convexHull(entire_face_pts)
+        cv2.polylines(image, [entire_face_hull], isClosed=True, color=(255, 0, 0), thickness=2)  
+
+        # 函數來擷取指定多邊形並移動到新位置
+        def extract_and_move_polygon(points, new_x, new_y):
+            # 獲取特徵點座標，並生成凸包
             pts = np.array([[landmarks.part(p).x, landmarks.part(p).y] for p in points], np.int32)
-            hull = cv2.convexHull(pts)  # 生成凸包
-            cv2.fillPoly(image, [hull], (255, 255, 255))  # 挖空該區域，填充為白色
+            hull = cv2.convexHull(pts)
+
+            # 創建遮罩並填充多邊形區域
+            mask = np.zeros_like(image)
+            cv2.fillPoly(mask, [hull], (255, 255, 255))
+            polygon_region = cv2.bitwise_and(image, mask)
+
+            # 擷取多邊形區域
+            non_zero_coords = np.where(mask[:, :, 0] == 255)
+            min_y, min_x = min(non_zero_coords[0]), min(non_zero_coords[1])
+            polygon_cropped = polygon_region[min_y:max(non_zero_coords[0])+1, min_x:max(non_zero_coords[1])+1]
+            mask_cropped = mask[min_y:max(non_zero_coords[0])+1, min_x:max(non_zero_coords[1])+1]
+
+            # 使用for迴圈將多邊形範圍內的像素移動到新位置
+            for i in range(polygon_cropped.shape[0]):
+                for j in range(polygon_cropped.shape[1]):
+                    if mask_cropped[i, j, 0] == 255:  # 確保該點在五官形成的凸包內
+                        image[new_y + i, new_x + j] = polygon_cropped[i, j]
+
+            # 將原多邊形區域填充為白色
+            cv2.fillPoly(image, [hull], (255, 255, 255))
 
         # 分別處理左眼、右眼、鼻子和嘴巴
-        fill_white(left_eye_points)   # 挖空左眼
-        fill_white(right_eye_points)  # 挖空右眼
-        fill_white(nose_points)       # 挖空鼻子
-        fill_white(mouth_points)      # 挖空嘴巴
+        extract_and_move_polygon(left_eye_points, 10, 10)   # 擷取並移動左眼
+        extract_and_move_polygon(right_eye_points, 10, 40)  # 擷取並移動右眼
+        extract_and_move_polygon(nose_points, 10, 70)       # 擷取並移動鼻子
+        extract_and_move_polygon(mouth_points, 10, 85)      # 擷取並移動嘴巴
 
+    # 保存處理後的圖片
     file_name = os.path.basename(image_path)
     save_path = os.path.join(save_folder, file_name)
-    
-    # 儲存圖片
     cv2.imwrite(save_path, image)
     print(f"已儲存圖片至: {save_path}")
-
 
 # 創建新的run資料夾
 save_folder = create_run_folder()
