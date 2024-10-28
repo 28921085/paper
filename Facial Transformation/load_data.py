@@ -1,10 +1,10 @@
+# load_data.py
 import os
 import random
 
 class LoadData:
-    def __init__(self, dataset_dir="dataset/FFHQ dataset/thumbnails128x128", run_dir="run"):
+    def __init__(self, dataset_dir="dataset/FFHQ dataset/thumbnails128x128"):
         self.dataset_dir = dataset_dir
-        self.run_dir = run_dir
 
     def list_files_in_directory(self, directory_path):
         try:
@@ -24,14 +24,3 @@ class LoadData:
         else:
             print(file_list)  # 錯誤訊息
             return []
-
-    def create_run_folder(self):
-        if not os.path.exists(self.run_dir):
-            os.makedirs(self.run_dir)
-
-        existing_ids = [int(folder) for folder in os.listdir(self.run_dir) if folder.isdigit()]
-        next_id = max(existing_ids) + 1 if existing_ids else 0
-        new_folder_path = os.path.join(self.run_dir, str(next_id))
-        os.makedirs(new_folder_path)
-        
-        return new_folder_path

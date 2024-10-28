@@ -1,4 +1,5 @@
 from load_data import LoadData
+from write_data import WriteData
 from process_image import ProcessImage
 from diffusers import StableDiffusionInpaintPipeline
 import torch
@@ -36,12 +37,13 @@ def run_diffusion_test():
 
 
 def generate_processed_image():
-    # 初始化 LoadData 和 ProcessImage 類別
-    data_loader = LoadData()
+    # 初始化 LoadData 和 WriteData 類別
+    data_loader = LoadData(dataset_dir="dataset/FFHQ dataset/thumbnails128x128")
+    writer = WriteData()
     image_processor = ProcessImage()
 
     # 創建 run 資料夾
-    save_folder = data_loader.create_run_folder()
+    save_folder = writer.create_run_folder()
 
     # 載入圖像資料
     image_path_list = data_loader.load_data()
