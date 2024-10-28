@@ -1,0 +1,10 @@
+# 安裝 Diffusers、Transformers、Accelerate、Scipy、Safetensors 及其相依套件
+pip install diffusers transformers accelerate scipy safetensors
+
+# 安裝 OpenCV-Python
+pip install opencv-python
+
+# 安裝 Dlib
+pip install dlib
+
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124

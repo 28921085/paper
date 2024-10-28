@@ -3,8 +3,9 @@ import os
 import random
 
 class LoadData:
-    def __init__(self, dataset_dir="dataset/FFHQ dataset/thumbnails128x128"):
+    def __init__(self, dataset_dir="dataset/FFHQ dataset/thumbnails128x128",max_image=5):
         self.dataset_dir = dataset_dir
+        self.max_image=max_image
 
     def list_files_in_directory(self, directory_path):
         try:
@@ -16,11 +17,11 @@ class LoadData:
         except Exception as e:
             return f"發生錯誤: {str(e)}"
 
-    def load_data(self, max_image=5):
+    def load_data(self):
         file_list = self.list_files_in_directory(self.dataset_dir)
         if isinstance(file_list, list):
             random.shuffle(file_list)
-            return [os.path.join(self.dataset_dir, file_list[i]) for i in range(min(max_image, len(file_list)))]
+            return [os.path.join(self.dataset_dir, file_list[i]) for i in range(min(self.max_image, len(file_list)))]
         else:
             print(file_list)  # 錯誤訊息
             return []
