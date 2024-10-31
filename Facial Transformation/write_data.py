@@ -1,9 +1,11 @@
 import os
+import cv2
 
 class WriteData:
     def __init__(self, run_dir="run", prefix=""):
         self.run_dir = run_dir
         self.prefix = prefix
+        self.path = ""
 
     def create_run_folder(self):
         # 檢查資料夾是否存在，若不存在則建立
@@ -23,3 +25,24 @@ class WriteData:
         os.makedirs(new_folder_path)
         
         return new_folder_path
+    
+    def save_png_diffuser(self,output,filename):
+        if self.path == "":
+            # 創建 run 資料夾
+            self.path = self.create_run_folder()
+
+        file_name = os.path.basename(filename)
+        output_filename = f"{self.path}\\{file_name}"
+        output.save(output_filename)
+        print(f"已儲存圖片至: {output_filename}")
+
+    def save_png_cv2(self,image,filename):
+        if self.path == "":
+            # 創建 run 資料夾
+            self.path = self.create_run_folder()
+
+        file_name = os.path.basename(filename)
+        save_path = os.path.join(self.path, file_name)
+        cv2.imwrite(save_path, image)
+        print(f"已儲存圖片至: {save_path}")
+

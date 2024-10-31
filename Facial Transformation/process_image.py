@@ -54,7 +54,7 @@ class ProcessImage:
                     if cv2.pointPolygonTest(entire_face_hull, (target_x, target_y), False) >= 0:
                         image[target_y, target_x] = polygon_cropped[i, j]
 
-    def process_image(self, image_path, save_folder):
+    def process_image(self, image_path):
         image = cv2.imread(image_path)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         faces = self.detector(gray)
@@ -86,8 +86,5 @@ class ProcessImage:
             for _, (polygon_cropped, mask_cropped, _) in extracted_features.items():
                 self.move_polygon(image, polygon_cropped, mask_cropped, entire_face_hull)
 
-        # 保存處理後的圖片
-        file_name = os.path.basename(image_path)
-        save_path = os.path.join(save_folder, file_name)
-        cv2.imwrite(save_path, image)
-        print(f"已儲存圖片至: {save_path}")
+        return image
+    
