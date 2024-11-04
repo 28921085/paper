@@ -41,10 +41,18 @@ class ProcessImage:
             offset_y = random.randint(0, image.shape[0] - polygon_cropped.shape[0])
             offset_x = random.randint(0, image.shape[1] - polygon_cropped.shape[1])
 
-            # 檢查隨機位置是否在臉部凸包內
             if cv2.pointPolygonTest(entire_face_hull, (offset_x + polygon_cropped.shape[1] // 2, 
-                                                       offset_y + polygon_cropped.shape[0] // 2), False) >= 0:
+                                                    offset_y + polygon_cropped.shape[0] // 2), False) >= 0:
                 valid_position = True
+
+        # 使用for迴圈將多邊形範圍內的像素移動到新位置，並添加條件檢查
+        for i in range(polygon_cropped.shape[0]):
+            for j in range(polygon_cropped.shape[1]):
+                if mask_cropped[i, j, 0] == 255:
+                    target_x, target_y = offset_x + j, offset_y + i
+                    if cv2.pointPolygonTest(entire_face_hull, (target_x, target_y), False) >= 0:
+                        # 以 (target_x, target_y) 為中心畫一個直徑3的圓
+                        cv2.circle(image, (target_x, target_y), radius=3, color=(255, 255, 255), thickness=-1)
 
         # 使用for迴圈將多邊形範圍內的像素移動到新位置，並添加條件檢查
         for i in range(polygon_cropped.shape[0]):
@@ -87,4 +95,3 @@ class ProcessImage:
                 self.move_polygon(image, polygon_cropped, mask_cropped, entire_face_hull)
 
         return image
-    
