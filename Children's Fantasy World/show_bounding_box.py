@@ -1,31 +1,22 @@
 import sys
 import os
 import colorsys
+import json
 sys.path.append("../Common Module")
 from load_data import LoadData
 from write_data import WriteData
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
-# Define bounding boxes and labels (new structure with potential scaling)
-annotations = [
-    "我在這張圖片中看到了建築工人、建築物、梯子、推土機和吊車",
-    [[50, 450, 260, 900], "worker"],
-    [[260, 600, 390, 930], "worker"],
-    [[460, 300, 570, 650], "worker"],
-    [[570, 220, 660, 490], "worker"],
-    [[680, 290, 760, 480], "worker"],
-    [[70, 0, 320, 600], "building"],
-    [[320, 70, 470, 999], "building"],
-    [[470, 0, 810, 999], "building"],
-    [[810, 440, 1000, 880], "building"],
-    [[0, 650, 90, 1000], "ladder"],
-    [[760, 0, 910, 270], "ladder"],
-    [[640, 730, 820, 950], "bulldozer"],
-    [[520, 0, 740, 310], "crane"]
-]
+# Load annotations from response.txt
+with open('response.txt', 'r', encoding='utf-8') as file:
+    annotations = json.load(file)
+
+# Extract text description and bounding boxes
+description = annotations[0]
+bounding_boxes = annotations[1:]
 
 # Use a set to collect unique labels
-unique_labels = set(label for _, label in annotations[1:])
+unique_labels = set(label for _, label in bounding_boxes)
 
 # Generate equally spaced colors based on the number of unique labels
 def generate_colors(n):
@@ -36,7 +27,6 @@ def generate_colors(n):
         lightness = 0.5  # Fixed lightness for balanced color
         saturation = 0.7  # Fixed saturation for vivid colors
         rgb = colorsys.hls_to_rgb(hue, lightness, saturation)
-        # Convert to hex color format
         colors.append('#{:02x}{:02x}{:02x}'.format(int(rgb[0]*255), int(rgb[1]*255), int(rgb[2]*255)))
     return colors
 
@@ -52,12 +42,19 @@ draw = ImageDraw.Draw(image)
 actual_width, actual_height = image.size
 
 # Calculate scaling factors
-# 1000 is magic number don't move
+# 1000 is magic number don't modify
 scale_x = actual_width / 1000
 scale_y = actual_height / 1000
 
-# Draw bounding boxes with labels, applying scaling if needed
-for bbox in annotations[1:]:  # Skip the first entry (text description)
+# Set font size and load font
+font_size = 24  # Increase font size for better visibility
+try:
+    font = ImageFont.truetype("arial.ttf", font_size)
+except IOError:
+    font = ImageFont.load_default()  # Fallback if font file is not found
+
+# Draw bounding boxes with labels, applying scaling
+for bbox in bounding_boxes:
     if len(bbox) == 2 and len(bbox[0]) == 4:  # Ensure bbox structure is correct
         coords, label = bbox[0], bbox[1]
         x1, y1, x2, y2 = coords
@@ -71,7 +68,17 @@ for bbox in annotations[1:]:  # Skip the first entry (text description)
         # Get the assigned color for the label
         color = label_to_color[label]
         draw.rectangle([x1, y1, x2, y2], outline=color, width=4)  # Thicker border
-        draw.text((x1, y1), label, fill=color)
+
+        # Calculate text bounding box
+        text_bbox = draw.textbbox((x1, y1), label, font=font)
+        text_width, text_height = text_bbox[2] - text_bbox[0], text_bbox[3] - text_bbox[1]
+        
+        # Draw background for text
+        text_bg = [(x1, y1 - text_height - 4), (x1 + text_width + 4, y1)]
+        draw.rectangle(text_bg, fill=color)
+        
+        # Draw label with white text
+        draw.text((x1 + 2, y1 - text_height - 2), label, fill="white", font=font)
 
 # Save the output image with bounding boxes
 writer = WriteData(prefix="bbox")
