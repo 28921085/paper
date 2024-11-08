@@ -1,5 +1,6 @@
 import os
 import cv2
+from PIL import Image
 
 class WriteData:
     def __init__(self, run_dir="run", prefix=""):
@@ -26,7 +27,7 @@ class WriteData:
         
         return new_folder_path
     
-    def save_png_diffuser(self,output,filename):
+    def save_img_diffuser(self,output,filename):
         if self.path == "":
             # 創建 run 資料夾
             self.path = self.create_run_folder()
@@ -36,7 +37,7 @@ class WriteData:
         output.save(output_filename)
         print(f"已儲存圖片至: {output_filename}")
 
-    def save_png_cv2(self,image,filename):
+    def save_img_cv2(self,image,filename):
         if self.path == "":
             # 創建 run 資料夾
             self.path = self.create_run_folder()
@@ -44,5 +45,14 @@ class WriteData:
         file_name = os.path.basename(filename)
         save_path = os.path.join(self.path, file_name)
         cv2.imwrite(save_path, image)
+        print(f"已儲存圖片至: {save_path}")
+    
+    def save_img_PIL(self,image,filename):
+        if self.path == "":
+            # 創建 run 資料夾
+            self.path = self.create_run_folder()
+        file_name = os.path.basename(filename)
+        save_path = os.path.join(self.path, file_name)
+        image.save(save_path)
         print(f"已儲存圖片至: {save_path}")
 
