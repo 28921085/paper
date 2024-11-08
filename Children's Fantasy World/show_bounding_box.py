@@ -34,7 +34,9 @@ def generate_colors(n):
 label_to_color = {label: color for label, color in zip(unique_labels, generate_colors(len(unique_labels)))}
 
 # Load the uploaded image
-image_path = 'testimgs/優等_1051.jpg'
+image_path = 'testimgs/941.jpg'
+# image_path = 'testimgs/優等_1051.jpg'
+
 image = Image.open(image_path)
 draw = ImageDraw.Draw(image)
 
