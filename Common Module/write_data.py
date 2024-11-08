@@ -26,6 +26,22 @@ class WriteData:
         os.makedirs(new_folder_path)
         
         return new_folder_path
+    def write_txt(self,data, filename):
+        # 檢查 data 是否為陣列或字串
+        if isinstance(data, (list, tuple)):
+            # 如果是陣列（list 或 tuple），將每個元素轉成字串並以換行符號分隔
+            data_str = "\n".join(map(str, data))
+        elif isinstance(data, str):
+            # 如果是字串，直接寫入
+            data_str = data
+        else:
+            raise ValueError("儲存txt錯誤，只接受陣列（list、tuple）或字串")
+
+        # 將內容寫入 .txt 檔案
+        save_path = os.path.join(self.path, filename)
+        with open(save_path, "w", encoding="utf-8") as file:
+            file.write(data_str)
+        print(f"資料已成功寫入 {save_path}")
     
     def save_img_diffuser(self,output,filename):
         if self.path == "":
@@ -47,10 +63,13 @@ class WriteData:
         cv2.imwrite(save_path, image)
         print(f"已儲存圖片至: {save_path}")
     
-    def save_img_PIL(self,image,filename):
+    def save_img_PIL(self,image,filename,attached_data=None,attached_data_name="attached_data.txt"):
         if self.path == "":
             # 創建 run 資料夾
             self.path = self.create_run_folder()
+        if attached_data:
+            self.write_txt(attached_data,attached_data_name)
+
         file_name = os.path.basename(filename)
         save_path = os.path.join(self.path, file_name)
         image.save(save_path)
