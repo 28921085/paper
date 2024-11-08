@@ -7,28 +7,18 @@ from PIL import Image, ImageDraw
 
 # Define bounding boxes and labels (new structure with potential scaling)
 annotations = [
-    [800, 1067],  # Image dimensions
-    [[350, 300, 450, 450], "person"],
-    [[450, 340, 550, 450], "person"],
-    [[200, 590, 500, 1000], "person"],
-    [[450, 630, 650, 820], "person"],
-    [[500, 820, 680, 1000], "person"],
-    [[640, 740, 820, 970], "person"],
-    [[740, 550, 990, 930], "person"],
-    [[840, 710, 1000, 980], "person"],
-    [[0, 770, 170, 920], "person"],
-    [[50, 530, 220, 720], "person"],
-    [[150, 430, 250, 550], "person"],
-    [[220, 470, 320, 570], "person"],
-    [[620, 540, 680, 660], "person"],
-    [[850, 470, 960, 620], "person"],
-    [[620, 420, 780, 540], "person"],
-    [[750, 440, 830, 510], "person"],
-    [[530, 310, 730, 480], "staircase"],
-    [[0, 0, 350, 600], "building"],
-    [[480, 0, 1000, 650], "building"],
-    [[530, 310, 580, 480], "banner"],
-    [[600, 360, 960, 420], "signboard"]
+[800, 1067],
+[[350, 300, 450, 450], "person"],
+[[450, 340, 550, 450], "person"],
+[[350, 460, 470, 570], "person"],
+[[620, 420, 770, 530], "person"],
+[[750, 550, 950, 700], "person"],
+[[150, 590, 500, 1000], "person"],
+[[470, 640, 650, 820], "person"],
+[[500, 820, 680, 1000], "person"],
+[[630, 750, 810, 970], "person"],
+[[750, 720, 990, 980], "person"],
+[[0, 770, 170, 920], "person"]
 ]
 
 # Define colors for each class
@@ -54,8 +44,8 @@ actual_width, actual_height = image.size
 input_width, input_height = annotations[0]
 
 # Calculate scaling factors
-scale_x = actual_width / input_width
-scale_y = actual_height / input_height
+scale_x = actual_width / 1000
+scale_y = actual_height / 1000
 
 # Draw bounding boxes with labels, applying scaling if needed
 for bbox in annotations[1:]:  # Skip the first entry (dimensions)
