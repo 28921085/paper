@@ -17,7 +17,7 @@ headers = {
 }
 
 # 總頁數
-total_pages = 1  # 根據您的描述
+total_pages = 48  # 根據您的描述
 
 # 迴圈遍歷每一頁
 for page in range(1, total_pages + 1):
@@ -37,16 +37,23 @@ for page in range(1, total_pages + 1):
         if img_src:
             # 若 img_src 已經包含完整的 URL 則直接使用，否則加上網站的根 URL
             if img_src.startswith("http"):
-                img_url = img_src
+                img_url = img_src.replace("http://", "https://")
             else:
                 img_url = f"https://ed.arte.gov.tw{img_src}"
 
             img_name = f"{img_alt}.jpg"
             img_path = os.path.join(image_folder, img_name)
 
-            # 將圖片網址打印出來
-            print(f"圖片名稱：{img_name}")
-            print(f"圖片網址：{img_url}")
-            print("-" * 50)
+            try:
+                img_data = requests.get(img_url, headers=headers).content
+                with open(img_path, "wb") as img_file:
+                    img_file.write(img_data)
+                print(f"已下載圖片：{img_name}")
+            except Exception as e:
+                print(f"下載圖片 {img_name} 時發生錯誤：{e}")
+            
 
-print("圖片網址列印完成。")
+    # 為了避免對伺服器造成過大負擔，下載每頁後休息 1 秒
+    time.sleep(2)
+
+print("所有圖片下載完成。")
