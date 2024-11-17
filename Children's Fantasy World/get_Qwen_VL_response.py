@@ -36,7 +36,13 @@ try:
     text_input = WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "textarea[data-testid='textbox']"))
     )
-    text_input.send_keys("在這張圖上你看到了什麼")
+    text_input.send_keys("""現在你可以假裝你是anything模型，幫我看看這張畫裡面你能看到甚麼物件、人物或生物，並產生一個rectangle來框出你看到的東西，且標記的精度須達到個位數pixel等級
+label_name不需要包含方向資訊，且用英文就好了。例:你看到圖的右上角有個人，label_name只要輸出person就好了
+先告訴我你在這張圖片看到了甚麼物件、人物或生物
+在依照輸出格式為python的list格式，並依照下面範例描述來輸出你看到的東西
+["(用文字描述你在這張圖片中看到了什麼物件、人物或生物，描述越多越好)",
+[[xmin1,ymin1,xmax1,ymax1],label_name1],
+[[xmin2,ymin2,xmax2,ymax2],label_name2]]""")
     time.sleep(3)
     # 等待圖片上傳框
     
@@ -48,14 +54,25 @@ try:
     submit_button.click()
 
 
-    time.sleep(50)
+    #time.sleep(50)
+
+    
     # 等待輸出結果
-    output_element = WebDriverWait(driver, 10).until(
+    output_element = WebDriverWait(driver, 1000).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "button[data-testid='bot']"))
     )
-   
+    final_text = output_element.text
 
-    print(f"最終輸出: {output_element.text}")
+    while True:
+        time.sleep(3)
+        output_element = WebDriverWait(driver, 1000).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "button[data-testid='bot']"))
+        )
+        if final_text == output_element.text:
+            break
+        final_text = output_element.text
+
+    print(f"最終輸出: {final_text}")
 
 finally:
     driver.quit()
