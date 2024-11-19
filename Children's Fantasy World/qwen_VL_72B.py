@@ -1,5 +1,56 @@
-# Load model directly
 from transformers import AutoProcessor, AutoModelForImageTextToText
+import torch
+from PIL import Image
+from qwen_vl_utils import process_vision_info
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
 
-processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-72B-Instruct")
-model = AutoModelForImageTextToText.from_pretrained("Qwen/Qwen2-VL-72B-Instruct")
+# 設定設備
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+# 載入處理器和模型
+processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-7B-Instruct-GPTQ-Int4")
+model = AutoModelForImageTextToText.from_pretrained(
+    "Qwen/Qwen2-VL-7B-Instruct-GPTQ-Int4",
+    device_map="auto",
+    torch_dtype=torch.float16
+)
+
+# 讀取圖片
+image_path = "testimgs/941.jpg"  # 替換為您的圖片路徑
+# image_path = "testimgs/甲等_1168.jpg"  # 替換為您的圖片路徑
+image = Image.open(image_path).convert("RGB")
+
+messages = [
+    {
+        "role": "user",
+        "content": [
+            {"type": "image", "image": image},
+            {"type": "text", "text": """現在你可以假裝你是anything模型，幫我看看這張畫裡面你能看到甚麼物件、人物或生物，並產生一個rectangle來框出你看到的東西，且標記的精度須達到個位數pixel等級
+label_name不需要包含方向資訊，且用英文就好了。例:你看到圖的右上角有個人，label_name只要輸出person就好了
+先告訴我你在這張圖片看到了甚麼物件、人物或生物
+在依照輸出格式為python的list格式，並依照下面範例描述來輸出你看到的東西
+["(用文字描述你在這張圖片中看到了什麼物件、人物或生物，描述越多越好)",
+[[xmin1,ymin1,xmax1,ymax1],label_name1],
+[[xmin2,ymin2,xmax2,ymax2],label_name2]]"""}
+        ]
+    }
+]
+
+text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+image_inputs, video_inputs = process_vision_info(messages)
+inputs = processor(
+    text=[text],
+    images=image_inputs,
+    videos=video_inputs,
+    padding=True,
+    return_tensors="pt"
+).to(device)
+
+# 生成結果
+generated_ids = model.generate(**inputs, max_new_tokens=1024)
+generated_ids_trimmed = [out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)]
+output_text = processor.batch_decode(generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False)
+
+# 輸出結果
+print(output_text[0])
