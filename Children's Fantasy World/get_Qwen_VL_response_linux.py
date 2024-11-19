@@ -7,14 +7,29 @@ import os
 import time
 
 options = Options()
-options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.69 Safari/537.36")
+# options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.69 Safari/537.36")
+options.add_argument("--headless")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--disable-gpu")
 
 driver = webdriver.Chrome(options=options)
 
 try:
-
+    # 打開網頁
+    # driver.get("https://huggingface.co/spaces/Qwen/Qwen2-VL")
     driver.get("https://qwen-qwen2-vl.hf.space/?__theme=light")
+
+
     driver.implicitly_wait(10)
+
+    # 獲取當前頁面的 HTML 原始碼
+    # page_html = driver.page_source
+
+    # # 將 HTML 保存到本地檔案
+    # with open("output.html", "w", encoding="utf-8") as file:
+    #     file.write(page_html)
+    # print("HTML 檔案已保存到 output.html")
 
     # 定位文字輸入框
     file_input = WebDriverWait(driver, 20).until(
@@ -43,6 +58,10 @@ label_name不需要包含方向資訊，且用英文就好了。例:你看到圖
     )
     submit_button.click()
 
+
+    #time.sleep(50)
+
+    
     # 等待輸出結果
     output_element = WebDriverWait(driver, 1000).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "button[data-testid='bot']"))
