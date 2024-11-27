@@ -8,7 +8,7 @@ from load_data import LoadData
 from write_data import WriteData
 
 # 原始圖片的路徑
-image_path = os.path.abspath('testimgs/優等_1050.jpg')
+image_path = os.path.abspath('testimgs/1168.jpg')
 
 # 載入原始圖片
 image = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
@@ -24,7 +24,7 @@ image_height, image_width = image.shape[:2]
 max_range = 1000
 
 # 從檔案讀取座標和標籤資料（忽略第一行）
-file_path = 'run/bbox27/response.txt'
+file_path = 'run/bbox28/response.txt'
 coordinates = []
 with open(file_path, 'r', encoding='utf-8') as file:
     lines = file.readlines()[1:]  # 跳過第一行
@@ -59,5 +59,5 @@ for idx, (coord, label) in enumerate(coordinates):
     xmin, ymin, xmax, ymax = max(0, xmin), max(0, ymin), min(image_width, xmax), min(image_height, ymax)
     # 裁剪圖片
     cropped_image = image[ymin:ymax, xmin:xmax]
-    writer.save_img_cv2(cropped_image, f'{idx}.jpg')
+    writer.save_img_cv2(cropped_image, f'{idx}.jpg',attached_data=[xmin,ymin,xmax,ymax],attached_data_name=f'{idx}.txt')
     print(f"已保存裁剪圖片：{idx}.jpg")

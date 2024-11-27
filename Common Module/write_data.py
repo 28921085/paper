@@ -53,10 +53,12 @@ class WriteData:
         output.save(output_filename)
         print(f"已儲存圖片至: {output_filename}")
 
-    def save_img_cv2(self,image,filename):
+    def save_img_cv2(self,image,filename,attached_data=None,attached_data_name="attached_data.txt"):
         if self.path == "":
             # 創建 run 資料夾
             self.path = self.create_run_folder()
+        if attached_data:
+            self.write_txt(attached_data,attached_data_name)
 
         file_name = os.path.basename(filename)
         save_path = os.path.join(self.path, file_name)
