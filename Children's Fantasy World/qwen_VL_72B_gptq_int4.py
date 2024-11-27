@@ -3,32 +3,45 @@ import torch
 from PIL import Image
 from qwen_vl_utils import process_vision_info
 import warnings
+import time  # 加入時間模組
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 # 設定設備
 device = "cuda" if torch.cuda.is_available() else "cpu"
+
 # 获取每个 GPU 的总内存
 total_memory = torch.cuda.get_device_properties(device).total_memory
-print("total:",total_memory)
+print("total:", total_memory)
+
 # 计算 98% 的内存大小
 max_memory = int(total_memory * 0.98)
 
 # 设置 max_memory 参数
 max_memory_mapping = {0: max_memory}
+
+# 計時 - 模型載入
+model_load_start = time.time()
+
 # 載入處理器和模型
 processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-72B-Instruct-GPTQ-Int4")
 model = AutoModelForImageTextToText.from_pretrained(
     "Qwen/Qwen2-VL-72B-Instruct-GPTQ-Int4",
     device_map="auto",
-    torch_dtype=torch.float16,
+    torch_dtype="auto",
     max_memory=max_memory_mapping
 )
-print("模型載入完成")
+
+model_load_end = time.time()
+print(f"模型載入完成，耗時: {model_load_end - model_load_start:.2f} 秒")
+
 # 讀取圖片
-# image_path = "testimgs/941.jpg"  # 替換為您的圖片路徑
-image_path = "testimgs/甲等_1168.jpg"  # 替換為您的圖片路徑
+# image_path = 'testimgs/941.jpg'
+image_path = 'testimgs/優等_1050.jpg'
+# image_path = 'testimgs/甲等_1168.jpg'
+# image_path = 'testimgs/優等_1051.jpg'
 image = Image.open(image_path).convert("RGB")
 
+# 設定訊息
 messages = [
     {
         "role": "user",
@@ -55,10 +68,17 @@ inputs = processor(
     return_tensors="pt"
 ).to(device)
 
+# 計時 - 生成結果
+generation_start = time.time()
+
 # 生成結果
 generated_ids = model.generate(
     **inputs,
-    max_new_tokens=1024)
+    max_new_tokens=1024
+)
+
+generation_end = time.time()
+print(f"生成結果完成，耗時: {generation_end - generation_start:.2f} 秒")
 
 generated_ids_trimmed = [out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)]
 output_text = processor.batch_decode(generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False)
