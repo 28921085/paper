@@ -2,34 +2,41 @@ import cv2
 import numpy as np
 import os
 
-def create_mask_for_inpainting(background, xmin, ymin, xmax, ymax, margin=20, probability=0.7):
+def create_mask_for_inpainting(background, xmin, ymin, xmax, ymax,marginP=0.1, probability=0.7):
     """
     創建一個 mask，其中 (xmin, ymin, xmax, ymax) 所圍成的 1px 框框是 100% 成為白色 mask，
-    其餘範圍內外 margin 部分依然按指定機率成為白色。
-    
+    其餘範圍內外 w 和 h 的 10% 區域按指定機率成為白色。
+
     :param background: 背景圖片（用來確定大小）
     :param xmin: 左上角 x 座標
     :param ymin: 左上角 y 座標
     :param xmax: 右下角 x 座標
     :param ymax: 右下角 y 座標
-    :param margin: 周圍範圍的像素大小（內外同時應用）
     :param probability: 每個像素成為 mask 的機率 (0~1 之間)
     :return: 生成的 mask
     """
+    # 計算 w 和 h
+    w = xmax - xmin
+    h = ymax - ymin
+
+    # 計算 margin 為 w 和 h 的 10%
+    margin_w = int(w * marginP)
+    margin_h = int(h * marginP)
+
     # 初始化與背景相同大小的黑色 mask
     mask = np.zeros(background.shape[:2], dtype=np.uint8)
 
     # 外部範圍
-    outer_start_x = max(0, xmin - margin)
-    outer_start_y = max(0, ymin - margin)
-    outer_end_x = min(background.shape[1], xmax + margin)
-    outer_end_y = min(background.shape[0], ymax + margin)
+    outer_start_x = max(0, xmin - margin_w)
+    outer_start_y = max(0, ymin - margin_h)
+    outer_end_x = min(background.shape[1], xmax + margin_w)
+    outer_end_y = min(background.shape[0], ymax + margin_h)
 
     # 內部範圍
-    inner_start_x = min(background.shape[1], max(0, xmin + margin))
-    inner_start_y = min(background.shape[0], max(0, ymin + margin))
-    inner_end_x = max(0, min(background.shape[1], xmax - margin))
-    inner_end_y = max(0, min(background.shape[0], ymax - margin))
+    inner_start_x = min(background.shape[1], max(0, xmin + margin_w))
+    inner_start_y = min(background.shape[0], max(0, ymin + margin_h))
+    inner_end_x = max(0, min(background.shape[1], xmax - margin_w))
+    inner_end_y = max(0, min(background.shape[0], ymax - margin_h))
 
     # 填充外部範圍 (外部區域)
     outer_region_height = outer_end_y - outer_start_y
@@ -130,16 +137,98 @@ def process_video_with_overlay(input_path, background_path, output_path, xmin, y
     out.release()
     print("\n影片處理完成！")
 
+def process_multiple_videos(input_videos, background_path, output_path, regions, output_size):
+    """
+    處理多部影片，將它們的幀疊加到同一背景圖片上，並生成最終影片。
+
+    :param input_videos: 輸入影片路徑的列表
+    :param background_path: 背景圖片路徑
+    :param output_path: 輸出影片路徑
+    :param regions: 每部影片對應的貼圖區域 (xmin, ymin, xmax, ymax) 的列表
+    :param output_size: 每部影片縮放的大小 (w, h)
+    """
+    # 讀取背景圖片
+    background = cv2.imread(background_path)
+    if background is None:
+        print(f"無法打開背景圖片：{background_path}")
+        return
+
+    # 獲取背景屬性
+    frame_height, frame_width, _ = background.shape
+    print(f"背景大小：寬度={frame_width}, 高度={frame_height}")
+
+    # 確認所有影片是否可讀取，並找到最大 FPS 作為統一的輸出 FPS
+    fps_list = []
+    caps = []
+    for video in input_videos:
+        cap = cv2.VideoCapture(video)
+        if not cap.isOpened():
+            print(f"無法打開影片：{video}")
+            return
+        caps.append(cap)
+        fps_list.append(cap.get(cv2.CAP_PROP_FPS))
+
+    # 使用最高的 FPS 作為輸出影片的 FPS
+    output_fps = max(fps_list)
+
+    # 定義影片編碼器和輸出影片
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # 編碼格式
+    out = cv2.VideoWriter(output_path, fourcc, output_fps, (frame_width, frame_height))
+
+    # 計算每個影片的總幀數
+    frame_counts = [int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) for cap in caps]
+    max_frames = max(frame_counts)
+
+    # 開始逐幀處理
+    for frame_index in range(max_frames):
+        # 深拷貝背景作為當前畫面基礎
+        current_frame = background.copy()
+
+        # 處理每部影片
+        for i, cap in enumerate(caps):
+            if frame_index < frame_counts[i]:
+                ret, frame = cap.read()
+                if ret:
+                    # 獲取對應的區域和大小
+                    xmin, ymin, xmax, ymax = regions[i]
+                    w, h = output_size[i]
+
+                    # 處理影像並貼到背景
+                    processed_frame = process_frame_with_inpaint(frame, current_frame, xmin, ymin, xmax, ymax, w, h)
+                    current_frame = processed_frame  # 疊加處理
+
+        # 將處理後的畫面寫入輸出影片
+        out.write(current_frame)
+        print(f"處理中：{frame_index + 1}/{max_frames}", end="\r")
+
+    # 釋放資源
+    for cap in caps:
+        cap.release()
+    out.release()
+    print("\n影片處理完成！")
+
+
 # 使用範例
-# input_video = "testvideos/piano.mp4"  # 輸入影片路徑
-input_video = "https://dnznrvs05pmza.cloudfront.net/42e6b708-c285-4207-9ada-72da11e32033.mp4?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZWY3OTgxY2RkYjc0MGVlNyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTczMzM1NjgwMH0._sQI5Yk_cBvSNVZI4cfde3SVvCLFyjhq9lVO50u65fY"  # 輸入影片路徑
-# input_video = "https://dnznrvs05pmza.cloudfront.net/af612978-7043-4638-b952-fe8699725353.mp4?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNzg4ZjY3YTkyNmM5YjQyZCIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTczMzM1NjgwMH0.2SN9q5iZR-fgF6zKgsykce1X3eGuPLiQNTjB6IGH-_E"
+input_videos = [
+    "https://dnznrvs05pmza.cloudfront.net/42e6b708-c285-4207-9ada-72da11e32033.mp4?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZWY3OTgxY2RkYjc0MGVlNyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTczMzM1NjgwMH0._sQI5Yk_cBvSNVZI4cfde3SVvCLFyjhq9lVO50u65fY",
+    "testvideos/0.mp4",
+]  # 輸入多個影片路徑
 background_image = "testimgs/1168.jpg"  # 背景圖片路徑
-output_video = "output_overlay.mp4"  # 輸出影片路徑
+output_video = "output_combined.mp4"  # 輸出影片路徑
 
-# 指定貼圖區域和縮放尺寸
-xmin, ymin, xmax, ymax = 695, 60, 869, 360  # 貼圖區域 (左上角和右下角座標)
-w, h = xmax - xmin, ymax - ymin  # 縮放尺寸 (與貼圖區域一致)
+# 每個影片的貼圖區域 (xmin, ymin, xmax, ymax)
+regions = [
+    (695, 60, 869, 360),  # 第一部影片貼圖區域
+    (43,180,434,840),  # 第二部影片貼圖區域
+]
 
-# 執行影片處理
-process_video_with_overlay(input_video, background_image, output_video, xmin, ymin, xmax, ymax, w, h)
+# 每部影片縮放大小 (w, h)
+output_size = [
+    (869-695, 360-60),  # 第一部影片的大小
+    (434-43, 840-180),  # 第二部影片的大小
+]
+
+# 執行多部影片處理
+process_multiple_videos(input_videos, background_image, output_video, regions, output_size)
+
+
