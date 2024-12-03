@@ -75,8 +75,8 @@ def process_frame_with_inpaint(frame, background, xmin, ymin, xmax, ymax, w, h):
     mask = create_mask_for_inpainting(background, xmin, ymin, xmax, ymax)
 
     # 使用 inpaint 修補區域周圍
-    # inpainted_frame = cv2.inpaint(output_frame, mask, inpaintRadius=3, flags=cv2.INPAINT_NS)
-    inpainted_frame = cv2.inpaint(output_frame, mask, inpaintRadius=3, flags=cv2.INPAINT_TELEA)
+    inpainted_frame = cv2.inpaint(output_frame, mask, inpaintRadius=3, flags=cv2.INPAINT_NS)
+    # inpainted_frame = cv2.inpaint(output_frame, mask, inpaintRadius=3, flags=cv2.INPAINT_TELEA)
 
 
     return inpainted_frame
@@ -131,7 +131,9 @@ def process_video_with_overlay(input_path, background_path, output_path, xmin, y
     print("\n影片處理完成！")
 
 # 使用範例
-input_video = "testvideos/piano.mp4"  # 輸入影片路徑
+# input_video = "testvideos/piano.mp4"  # 輸入影片路徑
+input_video = "https://dnznrvs05pmza.cloudfront.net/42e6b708-c285-4207-9ada-72da11e32033.mp4?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZWY3OTgxY2RkYjc0MGVlNyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTczMzM1NjgwMH0._sQI5Yk_cBvSNVZI4cfde3SVvCLFyjhq9lVO50u65fY"  # 輸入影片路徑
+# input_video = "https://dnznrvs05pmza.cloudfront.net/af612978-7043-4638-b952-fe8699725353.mp4?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNzg4ZjY3YTkyNmM5YjQyZCIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTczMzM1NjgwMH0.2SN9q5iZR-fgF6zKgsykce1X3eGuPLiQNTjB6IGH-_E"
 background_image = "testimgs/1168.jpg"  # 背景圖片路徑
 output_video = "output_overlay.mp4"  # 輸出影片路徑
 
