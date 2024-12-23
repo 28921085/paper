@@ -3,7 +3,7 @@ import time, base64
 # The env var RUNWAYML_API_SECRET is expected to contain your API key.
 client = RunwayML()
 
-image = 'testimgs/3.jpg'
+image = 'testimgs/0.jpg'
 
 # encode image to base64
 with open(image, "rb") as f:
@@ -12,8 +12,7 @@ with open(image, "rb") as f:
 task = client.image_to_video.create(
   model='gen3a_turbo',
   prompt_image=f"data:image/png;base64,{base64_image}",
-  prompt_text="""The girl seated at the piano gracefully moves her fingers across the keys, her arms shifting rhythmically with the music as her head tilts slightly to glance at the open sheet music, while her foot gently taps the pedal in harmony with the melody.
-                Do not move the screen.""",
+  prompt_text="""The woman’s expression intensifies as her mouth opens and closes in an exaggerated manner, her hair swaying slightly with her animated movements. Her arms make small, sharp gestures while the child beside her shifts his gaze upward, his hands moving subtly toward the armrest, creating dynamic motion within the fixed frame.""",
   duration=5,
   ratio="768:1280"
 )

@@ -211,7 +211,9 @@ def process_multiple_videos(input_videos, background_path, output_path, regions,
 # 使用範例
 input_videos = [
     "https://dnznrvs05pmza.cloudfront.net/42e6b708-c285-4207-9ada-72da11e32033.mp4?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZWY3OTgxY2RkYjc0MGVlNyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTczMzM1NjgwMH0._sQI5Yk_cBvSNVZI4cfde3SVvCLFyjhq9lVO50u65fY",
-    "testvideos/0.mp4",
+    "https://dnznrvs05pmza.cloudfront.net/bf6dc138-540f-454d-9665-72b037d0d6db.mp4?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZjdhZmZmM2VkZjBkMjYyNSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTczMzM1NjgwMH0.KFeSf30HCOTB_DNyv14e45xx9evzoRG3KroNLT2ajaM",
+    "https://dnznrvs05pmza.cloudfront.net/5962a2b3-709f-4a0d-aabd-5ca2b55ae4d0.mp4?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiODU5YzdmZDFkMWFkOWZlZCIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTczMzM1NjgwMH0.-GLxEyCZfawIDwejYJntH56CHkcr8FksPLlTd-PqNqk",
+
 ]  # 輸入多個影片路徑
 background_image = "testimgs/1168.jpg"  # 背景圖片路徑
 output_video = "output_combined.mp4"  # 輸出影片路徑
@@ -220,12 +222,14 @@ output_video = "output_combined.mp4"  # 輸出影片路徑
 regions = [
     (695, 60, 869, 360),  # 第一部影片貼圖區域
     (43,180,434,840),  # 第二部影片貼圖區域
+    (15,890,406,1190),
 ]
 
 # 每部影片縮放大小 (w, h)
 output_size = [
     (869-695, 360-60),  # 第一部影片的大小
     (434-43, 840-180),  # 第二部影片的大小
+    (391,300)
 ]
 
 # 執行多部影片處理
