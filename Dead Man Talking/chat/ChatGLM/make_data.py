@@ -36,6 +36,14 @@ def parse_subtitles(subtitle_text):
         })
     return subtitles
 
+# 拆分 Whisper 字幕為字級別的結構
+def split_whisper_to_characters(whisper_subtitles):
+    char_speaker_map = []
+    for sub in whisper_subtitles:
+        for char in sub["text"]:
+            char_speaker_map.append({"char": char, "speaker": sub["speaker"]})
+    return char_speaker_map
+
 # 合併同一個說話者的字幕
 def merge_speaker_subtitles(subtitles):
     merged = []
@@ -79,25 +87,24 @@ def merge_speaker_subtitles(subtitles):
 
 def align_and_merge(correct_subtitles, whisper_subtitles):
     aligned_subtitles = []
-    whisper_idx = 0
+    char_speaker_map = split_whisper_to_characters(whisper_subtitles)
 
     for correct_sub in correct_subtitles:
         speaker_count = Counter()
-        while whisper_idx < len(whisper_subtitles):
-            whisper_sub = whisper_subtitles[whisper_idx]
-            
-            # 如果 Whisper 的時間範圍包含正確字幕
-            if (whisper_sub["start"] <= correct_sub["start"] <= whisper_sub["end"] or
-                whisper_sub["start"] <= correct_sub["end"] <= whisper_sub["end"]):
+        correct_characters = list(correct_sub["text"])  # 將正確字幕拆分成單個字
 
-                # 記錄該字幕的說話者
-                if whisper_sub.get("speaker") and whisper_sub["speaker"] != "Unknown":
-                    speaker_count[whisper_sub["speaker"]] += 1
+        # 遍歷每個字並計算說話者
+        for char in correct_characters:
+            for char_speaker in char_speaker_map:
+                if char == char_speaker["char"]:
+                    speaker_count[char_speaker["speaker"]] += 1
 
-                # 移動到下一個 Whisper 字幕
-                whisper_idx += 1
-            else:
-                break
+        # 印出計數資訊
+        print(f"正確字幕: {correct_sub['text']} 計數: {dict(speaker_count)}")
+
+        # 忽略計數中的 "Unknown"
+        if "Unknown" in speaker_count:
+            del speaker_count["Unknown"]
 
         # 確定最可能的說話者
         if speaker_count:
@@ -120,7 +127,7 @@ def align_and_merge(correct_subtitles, whisper_subtitles):
 def output_merged_subtitles(merged_subtitles):
     output = []
     for idx, sub in enumerate(merged_subtitles, start=1):
-        output.append(f"{idx}\n{format_time(sub['start'])} --> {format_time(sub['end'])}\nSpeaker {sub['speaker']}:{sub['text']}\n")
+        output.append(f"{idx}\n{format_time(sub['start'])} --> {format_time(sub['end'])}\nSpeaker {sub['speaker']}:{sub['text']}")
     return "\n".join(output)
 
 # 從文件讀取字幕
