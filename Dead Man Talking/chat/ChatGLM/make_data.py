@@ -18,16 +18,20 @@ def format_time(td):
 
 # 解析字幕檔案
 def parse_subtitles(subtitle_text):
-    pattern = r"(\d+)\n(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})\n(.+?)(?=\n\n|\Z)"
+    pattern = r"(\d+)\n(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})\n(Speaker \d+:)?(.+?)(?=\n\n|\Z)"
     matches = re.findall(pattern, subtitle_text, re.DOTALL)
     subtitles = []
     for match in matches:
-        idx, start, end, text = match
+        idx, start, end, speaker, text = match
         text = text.replace('\n', ' ').strip()
+        speaker = speaker.strip() if speaker else "Unknown"  # 如果沒有說話者，設為 "Unknown"
+        if speaker.startswith("Speaker "):
+            speaker = speaker.replace("Speaker ", "").replace(":", "")
         subtitles.append({
             "index": int(idx),
             "start": parse_time(start),
             "end": parse_time(end),
+            "speaker": speaker,
             "text": text
         })
     return subtitles
@@ -87,7 +91,8 @@ def align_and_merge(correct_subtitles, whisper_subtitles):
                 whisper_sub["start"] <= correct_sub["end"] <= whisper_sub["end"]):
 
                 # 記錄該字幕的說話者
-                speaker_count[whisper_sub["speaker"]] += 1
+                if whisper_sub.get("speaker") and whisper_sub["speaker"] != "Unknown":
+                    speaker_count[whisper_sub["speaker"]] += 1
 
                 # 移動到下一個 Whisper 字幕
                 whisper_idx += 1
@@ -95,7 +100,11 @@ def align_and_merge(correct_subtitles, whisper_subtitles):
                 break
 
         # 確定最可能的說話者
-        most_common_speaker = speaker_count.most_common(1)[0][0] if speaker_count else None
+        if speaker_count:
+            most_common_speaker = speaker_count.most_common(1)[0][0]
+        else:
+            # 如果無法確定說話者，使用正確字幕的說話者
+            most_common_speaker = correct_sub.get("speaker", "Unknown")
 
         aligned_subtitles.append({
             "start": correct_sub["start"],
@@ -111,7 +120,7 @@ def align_and_merge(correct_subtitles, whisper_subtitles):
 def output_merged_subtitles(merged_subtitles):
     output = []
     for idx, sub in enumerate(merged_subtitles, start=1):
-        output.append(f"{idx}\n{format_time(sub['start'])} --> {format_time(sub['end'])}\nSpeaker {sub['speaker']}:\n{sub['text']}\n")
+        output.append(f"{idx}\n{format_time(sub['start'])} --> {format_time(sub['end'])}\nSpeaker {sub['speaker']}:{sub['text']}\n")
     return "\n".join(output)
 
 # 從文件讀取字幕
@@ -125,9 +134,6 @@ whisper_subtitle_text = read_srt_file("whisper.srt")
 
 correct_subtitles = parse_subtitles(correct_subtitle_text)
 whisper_subtitles = parse_subtitles(whisper_subtitle_text)
-
-print("字幕:",correct_subtitles)
-print("whisper:",whisper_subtitles)
 aligned = align_and_merge(correct_subtitles, whisper_subtitles)
 merged = merge_speaker_subtitles(aligned)
 result = output_merged_subtitles(merged)
