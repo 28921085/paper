@@ -52,7 +52,10 @@ def split_whisper_to_characters(whisper_subtitles):
 
 # 判斷區間是否重疊
 def is_overlapping(start1, end1, start2, end2):
-    return not (end1 < start2 or end2 < start1)
+    # 添加容錯性，擴展 start1 和 end1 的範圍
+    start1 -= timedelta(seconds=2.5)
+    end1 += timedelta(seconds=2.5)
+    return not (end1 <= start2 or end2 <= start1)
 
 # 合併同一個說話者的字幕
 def merge_speaker_subtitles(subtitles):
@@ -98,7 +101,7 @@ def merge_speaker_subtitles(subtitles):
 def align_and_merge(correct_subtitles, whisper_subtitles):
     aligned_subtitles = []
     char_speaker_map = split_whisper_to_characters(whisper_subtitles)
-    cnt=0
+
     for correct_sub in correct_subtitles:
         speaker_count = Counter()
         correct_characters = [char for char in correct_sub["text"] if re.match(r"\w", char)]  # 過濾標點符號
@@ -115,9 +118,8 @@ def align_and_merge(correct_subtitles, whisper_subtitles):
                     break
 
         # 印出計數資訊
-        if cnt<100:
-            print(f"正確字幕: {correct_sub['text']} 計數: {dict(speaker_count)}")
-        cnt+=1
+        #print(f"正確字幕: {correct_sub['text']} 計數: {dict(speaker_count)}")
+
         # 忽略計數中的 "Unknown"
         if "Unknown" in speaker_count:
             del speaker_count["Unknown"]
