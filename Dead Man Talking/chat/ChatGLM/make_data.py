@@ -41,7 +41,8 @@ def split_whisper_to_characters(whisper_subtitles):
     char_speaker_map = []
     for sub in whisper_subtitles:
         for char in sub["text"]:
-            char_speaker_map.append({"char": char, "speaker": sub["speaker"]})
+            if re.match(r"\w", char):  # 只處理非標點符號的字符
+                char_speaker_map.append({"char": char, "speaker": sub["speaker"]})
     return char_speaker_map
 
 # 合併同一個說話者的字幕
@@ -91,16 +92,19 @@ def align_and_merge(correct_subtitles, whisper_subtitles):
 
     for correct_sub in correct_subtitles:
         speaker_count = Counter()
-        correct_characters = list(correct_sub["text"])  # 將正確字幕拆分成單個字
+        correct_characters = [char for char in correct_sub["text"] if re.match(r"\w", char)]  # 過濾標點符號
 
         # 遍歷每個字並計算說話者
         for char in correct_characters:
-            for char_speaker in char_speaker_map:
+            for i, char_speaker in enumerate(char_speaker_map):
                 if char == char_speaker["char"]:
                     speaker_count[char_speaker["speaker"]] += 1
+                    # 移除已匹配的字符，避免重複計算
+                    char_speaker_map.pop(i)
+                    break
 
         # 印出計數資訊
-        print(f"正確字幕: {correct_sub['text']} 計數: {dict(speaker_count)}")
+        #print(f"正確字幕: {correct_sub['text']} 計數: {dict(speaker_count)}")
 
         # 忽略計數中的 "Unknown"
         if "Unknown" in speaker_count:
