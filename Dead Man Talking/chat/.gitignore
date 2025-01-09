@@ -1,0 +1,7 @@
+*.wav
+*.mp3
+*.srt
+*.mp4
+*.txt
+*.json
+/whisper-diarization
