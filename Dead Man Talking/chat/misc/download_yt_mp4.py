@@ -5,9 +5,12 @@ def download_youtube_video(url, save_path="downloads"):
     os.makedirs(save_path, exist_ok=True)
     
     ydl_opts = {
-        'format': 'bestvideo+bestaudio/best',
+        'format': 'mp4',  # 確保下載 MP4 格式
         'outtmpl': os.path.join(save_path, '%(title)s.%(ext)s'),
-        'merge_output_format': 'mp4'
+        'postprocessors': [{
+            'key': 'FFmpegVideoConvertor',
+            'preferedformat': 'mp4'  # 確保影片轉換為標準 MP4
+        }]
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
