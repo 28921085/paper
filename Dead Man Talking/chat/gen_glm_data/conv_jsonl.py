@@ -15,7 +15,7 @@ def convert_to_jsonl(input_json, output_file):
             json.dump(pair, f, ensure_ascii=False)
             f.write('\n')
 
-filename = "test"
+filename = "output"
 with open(f'{filename}.json', 'r', encoding='utf-8') as file:
     input_data = json.load(file)
 
