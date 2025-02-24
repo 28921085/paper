@@ -8,7 +8,7 @@ def main():
     output_jsonl_file = "output.jsonl"
 
     print("Step 1: 轉換 SRT -> JSON")
-    generate_glm4_format(input_srt_file, output_json_file)
+    generate_glm4_format(input_srt_file, output_json_file ,ai_speaker="Speaker 0")
 
     print("Step 2: 轉換 JSON -> JSONL")
     convert_json_to_jsonl(output_json_file, output_jsonl_file)
