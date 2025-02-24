@@ -3,7 +3,7 @@ from conv_jsonl import convert_json_to_jsonl
 
 def main():
     # 設定檔案名稱
-    input_srt_file = "output_modify.txt"
+    input_srt_file = "output.txt"
     output_json_file = "output.json"
     output_jsonl_file = "output.jsonl"
 

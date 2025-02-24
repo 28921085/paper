@@ -10,13 +10,24 @@ output_files = {
     "val": "val.jsonl"
 }
 
-# 讀取所有 jsonl 檔案內容
+# 讀取所有 jsonl 檔案內容，並加入 system 欄位
 all_data = []
 for filename in os.listdir(raw_data_dir):
     if filename.endswith(".jsonl"):
         file_path = os.path.join(raw_data_dir, filename)
         with open(file_path, "r", encoding="utf-8") as f:
-            all_data.extend(f.readlines())
+            for line in f:
+                try:
+                    data = json.loads(line.strip())  # 解析 JSON
+                    if "messages" in data:
+                        # 在最前面插入 system 欄位
+                        data["messages"].insert(0, {
+                            "role": "system",
+                            "content": "以下是某人對問題或是非問句的回應，請學習該人的說話風格，並用相似風格回答其他問題。"
+                        })
+                    all_data.append(json.dumps(data, ensure_ascii=False) + "\n")
+                except json.JSONDecodeError as e:
+                    print(f"JSON decode error in file {filename}: {e}")
 
 # 總行數
 total_lines = len(all_data)
