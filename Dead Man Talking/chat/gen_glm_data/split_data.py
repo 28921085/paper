@@ -23,7 +23,7 @@ for filename in os.listdir(raw_data_dir):
                         # 在最前面插入 system 欄位
                         data["messages"].insert(0, {
                             "role": "system",
-                            "content": "以下是某人對問題或是一段話的回應，請學習該人的說話風格，並用相似風格回答其他問題。"
+                            "content": "以下是Jim程建評對問題或是一段話的回應，請學習該人的說話風格，並用相似風格回答其他問題。"
                         })
                     all_data.append(json.dumps(data, ensure_ascii=False) + "\n")
                 except json.JSONDecodeError as e:
