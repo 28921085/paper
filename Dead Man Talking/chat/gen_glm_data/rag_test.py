@@ -4,25 +4,24 @@ from langchain.schema import Document
 from rag_database import DatabaseManager
 
 embeddings = OllamaEmbeddings(model="llama3")
-DB_PATH = "Database"
+DB_PATH = "Jim"
 
-# 初始資料
-initial_documents = [
-    Document(page_content="台灣是亞洲一個美麗的島嶼，以美食和友善的人民聞名。"),
-    Document(page_content="日本以其傳統文化和現代科技並存的獨特風貌聞名於世。"),
-    Document(page_content="美國擁有多樣化的文化和風景，並以科技發展和創新著稱。"),
-    Document(page_content="法國以其美食、時尚和藝術聞名，是歐洲旅遊熱門目的地。"),
-]
+# # 初始資料
+# initial_documents = [
+#     Document(page_content="台灣是亞洲一個美麗的島嶼，以美食和友善的人民聞名。"),
+#     Document(page_content="日本以其傳統文化和現代科技並存的獨特風貌聞名於世。"),
+#     Document(page_content="美國擁有多樣化的文化和風景，並以科技發展和創新著稱。"),
+#     Document(page_content="法國以其美食、時尚和藝術聞名，是歐洲旅遊熱門目的地。"),
+# ]
 
 # 初始化資料庫
-db_manager = DatabaseManager(DB_PATH, embeddings, initial_documents)
+# db_manager = DatabaseManager(DB_PATH, embeddings, initial_documents)
+db_manager = DatabaseManager(DB_PATH, embeddings)
+
 
 # 測試查詢
-db_manager.search_data("亞洲的美麗島嶼")
+db_manager.search_data("Jim對擇偶有什麼條件",10)
 
-# 測試新增
-db_manager.add_data(["德國以其精密工程和汽車工業聞名。"])  
-db_manager.search_data("汽車工業")
 
 # # 測試更新
 # update_data(db, "台灣是亞洲一個美麗的島嶼，以美食和友善的人民聞名。", "台灣擁有豐富的夜市文化，吸引許多觀光客。", DB_PATH)  

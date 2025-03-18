@@ -23,8 +23,11 @@ class DatabaseManager:
     def search_data(self, query, k=2):
         result = self.db.similarity_search(query, k=k)
         print("\n🔍 查詢結果：")
+        resultText=""
         for i, doc in enumerate(result):
             print(f"{i + 1}. {doc.page_content}")
+            resultText+=doc.page_content+"\n"
+        return resultText
 
     def add_data(self, new_texts):
         new_docs = [Document(page_content=text) for text in new_texts]
