@@ -131,7 +131,7 @@ def predict(history, prompt, max_length, top_p, temperature):
     role="Jim程建評"
     rag_message=f"你是{role}，在回答問題之前，我會從你的訓練資料裡面提取出一些可能相關的對話做為參考，你的回應是{role}講的話，你只要參考該對話與問題後，正常回答即可。\n以下為問題:\n{messages[-1]['content']}\n以下為可能相關的對話:\n{context}"
     print(rag_message)
-    model_inputs = tokenizer.apply_chat_template(messages,
+    model_inputs = tokenizer.apply_chat_template(rag_message,
                                                  add_generation_prompt=True,
                                                  tokenize=True,
                                                  return_tensors="pt").to(next(model.parameters()).device)
