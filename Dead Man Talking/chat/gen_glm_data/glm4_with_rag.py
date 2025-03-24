@@ -127,10 +127,10 @@ def predict(history, prompt, max_length, top_p, temperature):
         if model_msg:
             messages.append({"role": "assistant", "content": model_msg})
     context=db_manager.search_data(messages[-1]['content'],5)
-    print("\n")
+    # print("\n")
     role="Jim程建評"
     rag_message=f"你是{role}，在回答問題之前，我會從你的訓練資料裡面提取出一些可能相關的對話做為參考，你的回應是{role}講的話，你只要參考該對話與問題後，正常回答即可。\n以下為問題:\n{messages[-1]['content']}\n以下為可能相關的對話:\n{context}"
-    print(rag_message)
+    # print(rag_message)
     model_inputs = tokenizer.apply_chat_template(rag_message,
                                                  add_generation_prompt=True,
                                                  tokenize=True,
@@ -154,7 +154,7 @@ def predict(history, prompt, max_length, top_p, temperature):
             history[-1][1] += new_token
         yield history
     # history[-1][1] += "\n本次rag用到的context:\n"
-
+    print(history[-1][1])
     # yield history
     
 

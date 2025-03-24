@@ -2,9 +2,12 @@ from langchain_ollama import OllamaEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.schema import Document
 from rag_database import DatabaseManager
-
-embeddings = OllamaEmbeddings(model="llama3")
-DB_PATH = "Jim"
+import torch
+from transformers import AutoTokenizer, AutoModel
+from rag_database import DatabaseManager, CustomEmbedding
+# embeddings = OllamaEmbeddings(model="llama3")
+# # DB_PATH = "Jim"
+# DB_PATH = "Law"
 
 # # 初始資料
 # initial_documents = [
@@ -16,26 +19,25 @@ DB_PATH = "Jim"
 
 # 初始化資料庫
 # db_manager = DatabaseManager(DB_PATH, embeddings, initial_documents)
-db_manager = DatabaseManager(DB_PATH, embeddings)
+# db_manager = DatabaseManager(DB_PATH, embeddings)
 
 
-# 測試查詢
-db_manager.search_data("Jim對擇偶有什麼條件",10)
+# # 測試查詢
+# db_manager.search_data("無行為能力",5)
+# db_manager.search_data("Jim對擇偶有什麼條件",10)
+
+DB_PATH = "Law"
+# GPU 裝置檢查
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-# # 測試更新
-# update_data(db, "台灣是亞洲一個美麗的島嶼，以美食和友善的人民聞名。", "台灣擁有豐富的夜市文化，吸引許多觀光客。", DB_PATH)  
-# search_data(db, "台灣")  
 
-# # 測試刪除
-# db = delete_data(db, "日本以其傳統文化和現代科技並存的獨特風貌聞名於世。", DB_PATH)  
-# search_data(db, "日本")  
+# 初始化模型
+tokenizer = AutoTokenizer.from_pretrained('intfloat/multilingual-e5-base')
+model = AutoModel.from_pretrained('intfloat/multilingual-e5-base').half().to(device)
 
-
-# # 使用 similarity_search_with_score() 來取得相似度分數
-# results = db.similarity_search_with_score(query, k=2)
-
-# # 顯示結果 (按相似度排序)
-# print("🔍 查詢結果 (包含相似度分數)：")
-# for i, (doc, score) in enumerate(sorted(results, key=lambda x: x[1], reverse=True), 1):
-#     print(f"{i}. {doc.page_content} (相似度: {score:.4f})")
+# 初始化 Embedding 類別
+embedding_model = CustomEmbedding(model, tokenizer, device)
+# 初始化資料庫
+db_manager = DatabaseManager(DB_PATH, embedding_model)
+db_manager.search_data("失蹤", 10)
