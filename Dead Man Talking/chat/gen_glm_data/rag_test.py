@@ -1,7 +1,6 @@
 from langchain_ollama import OllamaEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.schema import Document
-from rag_database import DatabaseManager
 import torch
 from transformers import AutoTokenizer, AutoModel
 from rag_database import DatabaseManager, CustomEmbedding
@@ -27,6 +26,7 @@ from rag_database import DatabaseManager, CustomEmbedding
 # db_manager.search_data("Jim對擇偶有什麼條件",10)
 
 DB_PATH = "Law"
+# DB_PATH = "Jim"
 # GPU 裝置檢查
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -40,4 +40,4 @@ model = AutoModel.from_pretrained('intfloat/multilingual-e5-base').half().to(dev
 embedding_model = CustomEmbedding(model, tokenizer, device)
 # 初始化資料庫
 db_manager = DatabaseManager(DB_PATH, embedding_model)
-db_manager.search_data("失蹤", 10)
+db_manager.search_data("失蹤", 5)

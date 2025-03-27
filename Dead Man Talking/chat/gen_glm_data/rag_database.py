@@ -30,7 +30,7 @@ class DatabaseManager:
         resultText = ""
         for i, doc in enumerate(result):
             print(f"{i + 1}. {doc.page_content}")
-            resultText += doc.page_content + "\n"
+            resultText += f'[{doc.page_content}],' 
         return resultText
 
     def add_data(self, new_texts):
