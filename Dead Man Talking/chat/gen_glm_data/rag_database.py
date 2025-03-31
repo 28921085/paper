@@ -24,12 +24,14 @@ class DatabaseManager:
             print("✅ 已建立並儲存資料庫")
         return db
 
-    def search_data(self, query, k=2):
+    def search_data(self, query, k=2, show=False):
         result = self.db.similarity_search(query, k=k)
-        print("\n🔍 查詢結果：")
+        if show:
+            print("\n🔍 查詢結果：")
         resultText = ""
         for i, doc in enumerate(result):
-            print(f"{i + 1}. {doc.page_content}")
+            if show:
+                print(f"{i + 1}. {doc.page_content}")
             resultText += f'[{doc.page_content}],' 
         return resultText
 

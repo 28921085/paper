@@ -29,10 +29,10 @@ def parse_conversation(file_path):
 
     return conversations
 
-# DB_PATH = "Law"
-# file_paths = ["law.txt"]
-DB_PATH = "Jim"
-file_paths = [f"conversation/jim-{i}.txt" for i in range(1, 8)]
+DB_PATH = "Law"
+file_paths = ["law.txt"]
+# DB_PATH = "Jim"
+# file_paths = [f"conversation/jim-{i}.txt" for i in range(1, 8)]
 
 parsed_conversations = []
 for file in file_paths:
@@ -41,4 +41,4 @@ for file in file_paths:
 
 # 初始化資料庫
 db_manager = DatabaseManager(DB_PATH, embedding_model, parsed_conversations)
-db_manager.search_data("擇偶條件", 10)
+db_manager.search_data("未成年人", 10)
