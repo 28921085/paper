@@ -1,7 +1,7 @@
 import json
 
 # 讀取 JSONL 檔案
-filename='jim-4'
+filename='jim-7'
 input_file = f"{filename}.jsonl"
 output_file = f"{filename}.txt"
 
