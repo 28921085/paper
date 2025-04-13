@@ -1,37 +1,26 @@
-import re
 import jieba
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# 讀取整份 law.txt
+# Step 1: 讀取全文
 with open("law.txt", "r", encoding="utf-8") as f:
     raw_text = f.read()
 
-# 修正：支援 xxxx 條 / xxxx-x 條
-pattern = r"(第\s*\d+(?:-\d+)?\s*條)\s*\n?(.+?)(?=(第\s*\d+(?:-\d+)?\s*條|$))"
-matches = re.findall(pattern, raw_text, re.DOTALL)
+# Step 2: 使用 jieba 斷詞（整份一次處理）
+tokenized_text = " ".join(jieba.lcut(raw_text))
 
-# law_paragraphs: 儲存每條法條的完整內文
-law_paragraphs = [f"{m[0]}\n{m[1].strip()}" for m in matches]
-
-# jieba 斷詞（可加入自訂詞典）
-tokenized_docs = [" ".join(jieba.lcut(para)) for para in law_paragraphs]
-
-# 計算 TF-IDF
+# Step 3: TF-IDF（只分析一份「整體文件」）
 vectorizer = TfidfVectorizer()
-tfidf_matrix = vectorizer.fit_transform(tokenized_docs)
+tfidf_matrix = vectorizer.fit_transform([tokenized_text])
 feature_names = vectorizer.get_feature_names_out()
+tfidf_scores = tfidf_matrix.toarray()[0]  # 只有一份文件
 
-# 顯示每條法條的 top K 關鍵詞
-top_k = 10
+# Step 4: 取 top k 關鍵字
+top_k = 50
+top_indices = tfidf_scores.argsort()[-top_k:][::-1]
+
+# Step 5: 寫入檔案
 with open("keyword_info.txt", "w", encoding="utf-8") as f:
-    for i, row in enumerate(tfidf_matrix.toarray()):
-        # 法條標題（如：第 1080 條）
-        title = law_paragraphs[i].splitlines()[0]
-        f.write(f"\n📄 {title} 關鍵字：\n")
-        
-        # 取得 top K 關鍵詞的索引
-        top_indices = row.argsort()[-top_k:][::-1]
-        for idx in top_indices:
-            score = row[idx]
-            if score > 0:
-                f.write(f"  {feature_names[idx]}: {score:.4f}\n")
+    f.write("📄 全文前 Top {} 關鍵字：\n".format(top_k))
+    for idx in top_indices:
+        score = tfidf_scores[idx]
+        f.write(f"  {feature_names[idx]}: {score:.4f}\n")
