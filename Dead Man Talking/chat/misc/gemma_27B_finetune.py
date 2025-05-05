@@ -41,7 +41,7 @@ def formatting_func(example):
     text = f"<start_of_turn>user\n{prompt}<end_of_turn>\n<start_of_turn>model\n{response}<end_of_turn>"
     return text
 
-# 4. 訓練參數
+# 4. 訓練參數（新增 logging_dir 與 report_to）
 training_args = TrainingArguments(
     per_device_train_batch_size=1,
     gradient_accumulation_steps=4,
@@ -54,9 +54,11 @@ training_args = TrainingArguments(
     output_dir="outputs",
     save_strategy="no",
     optim="paged_adamw_8bit",
+    logging_dir="./logs",         # ✅ 新增：TensorBoard 記錄目錄
+    report_to="tensorboard",      # ✅ 新增：啟用 tensorboard 記錄
 )
 
-# 改為（不加 tokenizer）
+# 5. 建立 Trainer
 trainer = SFTTrainer(
     model=model,
     train_dataset=dataset["train"],
@@ -64,19 +66,20 @@ trainer = SFTTrainer(
     peft_config=lora_config,
     formatting_func=formatting_func,
 )
+
+# 6. 訓練
 trainer.train()
 
-# 6. 儲存微調結果（可選）
+# 7. 儲存微調結果
 trainer.model.save_pretrained("lora_gemma_adapter")
 tokenizer.save_pretrained("lora_gemma_adapter")
 
-# 7. 使用訓練後模型進行推論
-model = trainer.model  # ✅ 使用訓練後模型，不重新載入
+# 8. 使用訓練後模型進行推論
+model = trainer.model
 model.eval()
 
 def ask_question(question: str):
     prompt = f"<start_of_turn>user\n{question}<end_of_turn>\n<start_of_turn>model\n"
-
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
 
     with torch.no_grad():
@@ -93,7 +96,6 @@ def ask_question(question: str):
     answer = response.split("<start_of_turn>model\n")[-1]
     print("💬 問題:", question)
     print("🤖 回答:", answer.strip())
-    print(answer)
 
-# 8. 測試推論
+# 9. 測試推論
 ask_question("借用物損壞了，借用人需要賠償嗎？詳細說明理由")
